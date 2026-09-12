@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bootstrap & jQuery Analytics Dashboard with Charts">
+    <title>Analytics Dashboard | Bootstrap + jQuery</title>
+
+    <!-- ============ CDN LIBRARIES ============ -->
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ============ CUSTOM STYLES ============ -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1e293b;
+        }
+
+        /* ---------- Header ---------- */
+        .dashboard-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+        }
+
+        /* ---------- Cards ---------- */
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 1.5rem;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1rem 1.5rem;
+            color: #2a5298;
+        }
+
+        /* ---------- Stat Cards ---------- */
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+            height: 100%;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .bg-gradient-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .bg-gradient-success { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .bg-gradient-warning { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+        .bg-gradient-danger  { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+
+        .stat-content h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+            color: #1e293b;
+        }
+
+        .stat-content p {
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 0;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ---------- Charts ---------- */
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+        }
+
+        .chart-container-sm {
+            position: relative;
+            height: 230px;
+            width: 100%;
+        }
+
+        /* ---------- Table ---------- */
+        .table-custom th {
+            font-weight: 600;
+            color: #475569;
+            border-top: none;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .table-custom td {
+            vertical-align: middle;
+            color: #1e293b;
+            font-size: 0.92rem;
+        }
+
+        .badge-status {
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 0.75rem;
+        }
+
+        /* ---------- Progress ---------- */
+        .progress {
+            height: 8px;
+            border-radius: 10px;
+            background-color: #e2e8f0;
+        }
+
+        /* ---------- Footer ---------- */
+        .footer-note {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 2rem;
+            padding: 1rem 0;
+        }
+
+        /* ---------- Responsive ---------- */
+        @media (max-width: 768px) {
+            .dashboard-header {
+                padding: 1.2rem;
+                text-align: center;
+            }
+            .dashboard-header .d-flex {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .stat-content h3 {
+                font-size: 1.4rem;
+            }
+            .stat-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ================= HEADER ================= -->
+    <header class="dashboard-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-1"><i class="fas fa-chart-pie me-2"></i>Analytics Dashboard</h1>
+                <p class="mb-0 opacity-75">Welcome back, Admin! Here's your data overview.</p>
+            </div>
+            <div>
+                <button class="btn btn-light btn-sm rounded-pill px-3" id="refreshBtn">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= MAIN CONTENT ================= -->
+    <main class="container-fluid px-4">
+
+        <!-- ----- STAT CARDS ROW ----- -->
+        <section class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <h3 id="totalRevenue">$54,230</h3>
+                        <p><i class="fas fa-dollar-sign me-1"></i>Total Revenue</p>
+                    </div>
+                    <div class="stat-icon bg-gradient-primary">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <h3 id="totalOrders">1,280</h3>
+                        <p><i class="fas fa-shopping-cart me-1"></i>Orders</p>
+                    </div>
+                    <div class="stat-icon bg-gradient-success">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <h3 id="totalCustomers">3,842</h3>
+                        <p><i class="fas fa-users me-1"></i>Customers</p>
+                    </div>
+                    <div class="stat-icon bg-gradient-warning">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-content">
+                        <h3 id="totalVisits">12.5k</h3>
+                        <p><i class="fas fa-eye me-1"></i>Visits</p>
+                    </div>
+                    <div class="stat-icon bg-gradient-danger">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- CHARTS ROW 1 ----- -->
+        <section class="row g-4 mb-4">
+            <!-- Line Chart -->
+            <div class="col-xl-8">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-chart-line me-2 text-primary"></i>Revenue vs Orders (Last 6 Months)</span>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="lineChartDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Last 6 months
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="lineChartDropdown">
+                                <li><a class="dropdown-item" href="#">Last 3 months</a></li>
+                                <li><a class="dropdown-item" href="#">Last 6 months</a></li>
+                                <li><a class="dropdown-item" href="#">Last year</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="lineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Doughnut Chart -->
+            <div class="col-xl-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-chart-pie me-2 text-success"></i>Sales by Category</span>
+                        <i class="fas fa-ellipsis-v text-muted" style="cursor: pointer;"></i>
+                    </div>
+                    <div class="card-body d-flex align-items-center justify-content-center">
+                        <div class="chart-container-sm w-100">
+                            <canvas id="doughnutChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- CHARTS ROW 2 ----- -->
+        <section class="row g-4 mb-4">
+            <!-- Bar Chart -->
+            <div class="col-xl-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-2 text-info"></i>Monthly Performance (2025)
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Radar Chart -->
+            <div class="col-xl-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-chart-area me-2 text-warning"></i>Team Skills Overview
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- TABLE + PROGRESS ROW ----- -->
+        <section class="row g-4 mb-4">
+            <!-- Recent Orders Table -->
+            <div class="col-xl-7">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-table me-2 text-primary"></i>Recent Orders</span>
+                        <button class="btn btn-sm btn-outline-primary rounded-pill" id="viewAllOrders">View All</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-custom mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ordersTableBody">
+                                    <!-- Filled by jQuery -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Goals -->
+            <div class="col-xl-5">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <i class="fas fa-bullseye me-2 text-danger"></i>Monthly Goals Progress
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-semibold">Revenue Target</span>
+                                <span class="text-primary fw-bold">78%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 78%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-semibold">New Customers</span>
+                                <span class="text-success fw-bold">92%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 92%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-semibold">Support Tickets Resolved</span>
+                                <span class="text-warning fw-bold">65%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 65%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-semibold">Customer Satisfaction</span>
+                                <span class="text-danger fw-bold">88%</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: 88%"></div>
+                            </div>
+                        </div>
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between text-muted small">
+                            <span><i class="fas fa-calendar-alt me-1"></i>Updated: Today, 10:30 AM</span>
+                            <span><i class="fas fa-chart-simple me-1"></i>On track</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ----- FOOTER ----- -->
+        <footer class="footer-note">
+            <i class="fas fa-code me-1"></i> Bootstrap 5 &amp; jQuery Dashboard — Charts powered by Chart.js
+        </footer>
+    </main>
+
+    <!-- ============ CDN SCRIPTS ============ -->
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap 5 JS (bundle includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- ============ DASHBOARD SCRIPT ============ -->
+    <script>
+        $(document).ready(function () {
+
+            /* ==================================================
+               1. LINE CHART — Revenue vs Orders
+               ================================================== */
+            const lineCtx = document.getElementById('lineChart').getContext('2d');
+            const lineChart = new Chart(lineCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [
+                        {
+                            label: 'Revenue ($)',
+                            data: [12500, 14200, 16800, 15400, 18200, 21000],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#667eea',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Orders',
+                            data: [220, 250, 290, 270, 310, 350],
+                            borderColor: '#43e97b',
+                            backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#43e97b',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#cbd5e1',
+                            borderColor: '#334155',
+                            borderWidth: 1,
+                            padding: 12,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { color: '#e2e8f0' },
+                            ticks: { callback: (val) => '$' + val }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            ticks: { callback: (val) => val + ' orders' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            /* ==================================================
+               2. DOUGHNUT CHART — Sales by Category
+               ================================================== */
+            const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
+            const doughnutChart = new Chart(doughnutCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Electronics', 'Clothing', 'Home', 'Books', 'Other'],
+                    datasets: [{
+                        data: [35, 25, 20, 12, 8],
+                        backgroundColor: ['#667eea', '#43e97b', '#f6d365', '#f093fb', '#a0aec0'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { usePointStyle: true, boxWidth: 8, padding: 15, font: { size: 11 } }
+                        },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${context.label}: ${percentage}% (${value}k)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            /* ==================================================
+               3. BAR CHART — Monthly Performance
+               ================================================== */
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            const barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [
+                        {
+                            label: 'Sales',
+                            data: [65, 78, 90, 81, 95, 110],
+                            backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            barPercentage: 0.6
+                        },
+                        {
+                            label: 'Expenses',
+                            data: [40, 45, 55, 50, 60, 68],
+                            backgroundColor: 'rgba(245, 87, 108, 0.8)',
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            barPercentage: 0.6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } },
+                        tooltip: {
+                            backgroundColor: '#1e293b',
+                            callbacks: {
+                                label: (context) => `${context.dataset.label}: $${context.raw}k`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#e2e8f0' },
+                            ticks: { callback: (val) => '$' + val + 'k' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            /* ==================================================
+               4. RADAR CHART — Team Skills
+               ================================================== */
+            const radarCtx = document.getElementById('radarChart').getContext('2d');
+            const radarChart = new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Development', 'Design', 'Marketing', 'Support', 'Sales', 'Management'],
+                    datasets: [
+                        {
+                            label: 'Current Team',
+                            data: [85, 70, 65, 80, 75, 90],
+                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                            borderColor: '#667eea',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#667eea',
+                            pointBorderColor: '#fff',
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Target',
+                            data: [90, 85, 80, 85, 85, 95],
+                            backgroundColor: 'rgba(67, 233, 123, 0.2)',
+                            borderColor: '#43e97b',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#43e97b',
+                            pointBorderColor: '#fff',
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8 } }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: '#e2e8f0' },
+                            pointLabels: { font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+
+            /* ==================================================
+               5. POPULATE RECENT ORDERS TABLE (jQuery)
+               ================================================== */
+            const orders = [
+                { id: '#ORD-7841', customer: 'Alice Johnson',  amount: '$345.00',   status: 'Completed',  statusClass: 'bg-success', date: '2025-06-10' },
+                { id: '#ORD-7842', customer: 'Michael Chen',   amount: '$1,280.00', status: 'Processing', statusClass: 'bg-warning', date: '2025-06-10' },
+                { id: '#ORD-7843', customer: 'Sarah Williams', amount: '$89.50',    status: 'Completed',  statusClass: 'bg-success', date: '2025-06-09' },
+                { id: '#ORD-7844', customer: 'David Brown',    amount: '$2,100.00', status: 'Shipped',    statusClass: 'bg-info',    date: '2025-06-09' },
+                { id: '#ORD-7845', customer: 'Emma Davis',     amount: '$450.00',   status: 'Pending',    statusClass: 'bg-danger',  date: '2025-06-08' }
+            ];
+
+            const $tbody = $('#ordersTableBody');
+            $.each(orders, function (index, order) {
+                const row = `
+                    <tr>
+                        <td><span class="fw-semibold">${order.id}</span></td>
+                        <td>${order.customer}</td>
+                        <td>${order.amount}</td>
+                        <td><span class="badge-status ${order.statusClass} text-white">${order.status}</span></td>
+                        <td class="text-muted">${order.date}</td>
+                    </tr>
+                `;
+                $tbody.append(row);
+            });
+
+            /* ==================================================
+               6. REFRESH BUTTON — simulate data update
+               ================================================== */
+            $('#refreshBtn').on('click', function () {
+                const $icon = $(this).find('i');
+                $icon.addClass('fa-spin');
+
+                setTimeout(function () {
+                    // Update stat numbers
+                    $('#totalRevenue').text('$' + (54230 + Math.floor(Math.random() * 500)).toLocaleString());
+                    $('#totalOrders').text((1280 + Math.floor(Math.random() * 50)).toLocaleString());
+                    $('#totalCustomers').text((3842 + Math.floor(Math.random() * 100)).toLocaleString());
+                    $('#totalVisits').text((12.5 + Math.random() * 0.5).toFixed(1) + 'k');
+
+                    // Slight update to line chart
+                    const newRevenue = lineChart.data.datasets[0].data.map(v => v + Math.floor(Math.random() * 500) - 250);
+                    lineChart.data.datasets[0].data = newRevenue;
+                    lineChart.update();
+
+                    $icon.removeClass('fa-spin');
+                }, 600);
+            });
+
+            /* ==================================================
+               7. VIEW ALL ORDERS BUTTON
+               ================================================== */
+            $('#viewAllOrders').on('click', function () {
+                alert('Navigating to full orders page... (Demo)');
+            });
+
+            /* ==================================================
+               8. DROPDOWN — Line chart time range
+               ================================================== */
+            $('.dropdown-item').on('click', function (e) {
+                e.preventDefault();
+                const text = $(this).text();
+                $(this).closest('.dropdown').find('.dropdown-toggle').text(text);
+                console.log('Chart period changed to: ' + text);
+            });
+
+        });
+    </script>
+</body>
+</html>
